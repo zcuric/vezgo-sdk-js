@@ -1,4 +1,4 @@
-const c = require('../testutils/common');
+import c from '../testutils/common';
 
 describe('Vezgo Accounts resource', () => {
   c.setupResource.bind(this)({ isUser: true });
@@ -56,10 +56,7 @@ describe('Vezgo Accounts resource', () => {
     c.shouldValidateResourceId.bind(this)({
       message: 'account id',
       isUser: true,
-      calls: [
-        () => this.user.accounts.getOne(),
-        () => this.user.accounts.getOne(1),
-      ],
+      calls: [() => this.user.accounts.getOne(), () => this.user.accounts.getOne(1)],
     });
 
     c.shouldHandleResourceEndpointError.bind(this)({
@@ -83,10 +80,7 @@ describe('Vezgo Accounts resource', () => {
     c.shouldValidateResourceId.bind(this)({
       message: 'account id',
       isUser: true,
-      calls: [
-        () => this.user.accounts.sync(),
-        () => this.user.accounts.sync(1),
-      ],
+      calls: [() => this.user.accounts.sync(), () => this.user.accounts.sync(1)],
     });
 
     c.shouldHandleResourceEndpointError.bind(this)({
@@ -110,10 +104,7 @@ describe('Vezgo Accounts resource', () => {
     c.shouldValidateResourceId.bind(this)({
       message: 'account id',
       isUser: true,
-      calls: [
-        () => this.user.accounts.remove(),
-        () => this.user.accounts.remove(1),
-      ],
+      calls: [() => this.user.accounts.remove(), () => this.user.accounts.remove(1)],
     });
 
     c.shouldHandleResourceEndpointError.bind(this)({

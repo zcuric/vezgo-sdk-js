@@ -1,5 +1,5 @@
-const c = require('../testutils/common');
-const h = require('../testutils/helpers');
+import c from '../testutils/common';
+import h from '../testutils/helpers';
 
 describe('Vezgo Transactions resource', () => {
   c.setupResource.bind(this)({ isUser: true });
@@ -18,8 +18,9 @@ describe('Vezgo Transactions resource', () => {
     test('should validate accountId', async () => {
       await expect(() => this.user.transactions.getList()).rejects.toThrow();
       await expect(() => this.user.transactions.getList({})).rejects.toThrow('account id');
-      await expect(() => this.user.transactions.getList({ accountId: 1 })).rejects
-        .toThrow('account id');
+      await expect(() => this.user.transactions.getList({ accountId: 1 })).rejects.toThrow(
+        'account id'
+      );
       expect(h.countRequests(this.userApiMock)).toBe(0);
     });
 
@@ -43,7 +44,7 @@ describe('Vezgo Transactions resource', () => {
         anything: 'else',
       });
       expect(this.userApiMock.history.get[0].url).toBe(
-        '/accounts/test/transactions?from=2021-01-01&to=2021-10-01&ticker=ABC&wallet=aa%3Abb%3Acc&last=test&limit=10&anything=else',
+        '/accounts/test/transactions?from=2021-01-01&to=2021-10-01&ticker=ABC&wallet=aa%3Abb%3Acc&last=test&limit=10&anything=else'
       );
     });
 
@@ -67,14 +68,18 @@ describe('Vezgo Transactions resource', () => {
     test('should validate both accountId and txId', async () => {
       await expect(() => this.user.transactions.getOne()).rejects.toThrow();
       await expect(() => this.user.transactions.getOne({})).rejects.toThrow('account id');
-      await expect(() => this.user.transactions.getOne({ txId: 'test' })).rejects
-        .toThrow('account id');
-      await expect(() => this.user.transactions.getOne({ accountId: 'test' })).rejects
-        .toThrow('transaction id');
-      await expect(() => this.user.transactions.getOne({ accountId: 'test', txId: 1 })).rejects
-        .toThrow('transaction id');
-      await expect(() => this.user.transactions.getOne({ accountId: 1, txId: 'test' })).rejects
-        .toThrow('account id');
+      await expect(() => this.user.transactions.getOne({ txId: 'test' })).rejects.toThrow(
+        'account id'
+      );
+      await expect(() => this.user.transactions.getOne({ accountId: 'test' })).rejects.toThrow(
+        'transaction id'
+      );
+      await expect(() =>
+        this.user.transactions.getOne({ accountId: 'test', txId: 1 })
+      ).rejects.toThrow('transaction id');
+      await expect(() =>
+        this.user.transactions.getOne({ accountId: 1, txId: 'test' })
+      ).rejects.toThrow('account id');
       expect(h.countRequests(this.userApiMock)).toBe(0);
     });
 
@@ -86,7 +91,9 @@ describe('Vezgo Transactions resource', () => {
         anything: 'else',
       });
       expect(transaction).toEqual({ test: 'data' });
-      expect(this.userApiMock.history.get[0].url).toBe('/accounts/test/transactions/test?anything=else');
+      expect(this.userApiMock.history.get[0].url).toBe(
+        '/accounts/test/transactions/test?anything=else'
+      );
     });
 
     c.shouldHandleResourceEndpointError.bind(this)({

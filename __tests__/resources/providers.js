@@ -1,4 +1,4 @@
-const c = require('../testutils/common');
+import c from '../testutils/common';
 
 describe('Vezgo Providers resource', () => {
   c.setupResource.bind(this)();
@@ -33,10 +33,7 @@ describe('Vezgo Providers resource', () => {
 
     c.shouldValidateResourceId.bind(this)({
       message: 'provider id',
-      calls: [
-        () => this.vezgo.providers.getOne(),
-        () => this.vezgo.providers.getOne(1),
-      ],
+      calls: [() => this.vezgo.providers.getOne(), () => this.vezgo.providers.getOne(1)],
     });
 
     c.shouldHandleResourceEndpointError.bind(this)({

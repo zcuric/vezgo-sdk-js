@@ -1,10 +1,10 @@
 // This file contains common reusable tests
-const MockAdapter = require('axios-mock-adapter');
-const Vezgo = require('../../src');
-const { countRequests, generateToken } = require('./helpers');
+import MockAdapter from 'axios-mock-adapter';
+import Vezgo from '../../src';
+import h from './helpers';
 
 // Setting up resource tests
-module.exports.setupResource = function ({ isUser } = {}) {
+export const setupResource = function ({ isUser } = {}) {
   beforeEach(() => {
     this.vezgo = Vezgo.init({ clientId: 'test', secret: 'test' });
     this.user = this.vezgo.login('test');
@@ -12,7 +12,7 @@ module.exports.setupResource = function ({ isUser } = {}) {
     if (isUser) {
       // For user resources (accounts, transactions), create mock on the user object
       this.apiMock = new MockAdapter(this.user.api.axiosInstance);
-      this.apiMock.onPost('/auth/token').reply(200, { token: 'test' });
+      this.apiMock.onPost('/auth/token').reply(200, { token: h.generateToken() });
       this.userApiMock = new MockAdapter(this.user.userApi.axiosInstance);
     } else {
       // For data resources (providers, teams), create mock on the vezgo object
@@ -21,18 +21,18 @@ module.exports.setupResource = function ({ isUser } = {}) {
   });
 };
 
-module.exports.shouldValidateResourceId = function ({ message, isUser, calls } = {}) {
+export const shouldValidateResourceId = function ({ message, isUser, calls } = {}) {
   test('should validate id', async () => {
     for (let i = 0; i < calls.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
+
       await expect(calls[i]).rejects.toThrow(message);
     }
     expect(this.apiMock.history.post).toHaveLength(0);
-    expect(countRequests(isUser ? this.userApiMock : this.apiMock)).toBe(0);
+    expect(h.countRequests(isUser ? this.userApiMock : this.apiMock)).toBe(0);
   });
 };
 
-module.exports.shouldHandleResourceEndpointError = function ({ mockCall, methodCall } = {}) {
+const shouldHandleResourceEndpointError = function ({ mockCall, methodCall } = {}) {
   test('should handle API error', async () => {
     mockCall().reply(400);
     await expect(methodCall).rejects.toThrow('400');
@@ -41,23 +41,23 @@ module.exports.shouldHandleResourceEndpointError = function ({ mockCall, methodC
   });
 };
 
-module.exports.shouldHandleTokenError = function ({ methodCall } = {}) {
+export const shouldHandleTokenError = function ({ methodCall } = {}) {
   test('should handle token error', async () => {
     this.apiMock.onPost('/auth/token').reply(400);
     await expect(methodCall).rejects.toThrow('400');
     this.apiMock.onPost('/auth/token').reply(500);
     await expect(methodCall).rejects.toThrow('500');
-    expect(countRequests(this.userApiMock)).toBe(0);
+    expect(h.countRequests(this.userApiMock)).toBe(0);
   });
 };
 
-module.exports.testGetTokenBehavior = function ({ isBrowser } = {}) {
+export const testGetTokenBehavior = function ({ isBrowser } = {}) {
   describe('.getToken()', () => {
     test('should fetch a new token if the existing one is about to expire', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const existingToken = generateToken(9); // 9 secs remaining
-      const newToken = generateToken();
+      const existingToken = h.generateToken(9); // 9 secs remaining
+      const newToken = h.generateToken();
       mockObject.reset();
       mockObject
         .onPost()
@@ -75,7 +75,7 @@ module.exports.testGetTokenBehavior = function ({ isBrowser } = {}) {
     test('should return existing token if still valid', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const token = generateToken(11); // 11 secs remaining
+      const token = h.generateToken(11); // 11 secs remaining
       mockObject.reset();
       mockObject.onPost().replyOnce(200, { token });
 
@@ -88,7 +88,7 @@ module.exports.testGetTokenBehavior = function ({ isBrowser } = {}) {
   });
 };
 
-module.exports.testAutoRefreshBehavior = function ({ isBrowser } = {}) {
+export const testAutoRefreshBehavior = function ({ isBrowser } = {}) {
   describe('when making API calls', () => {
     beforeEach(() => {
       const userApiMock = new MockAdapter(this.user.userApi.axiosInstance);
@@ -98,8 +98,8 @@ module.exports.testAutoRefreshBehavior = function ({ isBrowser } = {}) {
     test('should refresh token if the existing one is about to expire', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const existingToken = generateToken(9); // 9 secs remaining
-      const newToken = generateToken();
+      const existingToken = h.generateToken(9); // 9 secs remaining
+      const newToken = h.generateToken();
       mockObject.reset();
       mockObject
         .onPost()
@@ -117,7 +117,7 @@ module.exports.testAutoRefreshBehavior = function ({ isBrowser } = {}) {
     test('should not refresh token if the existing one is still good', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const token = generateToken(11); // 11 secs remaining
+      const token = h.generateToken(11); // 11 secs remaining
       mockObject.reset();
       mockObject.onPost().replyOnce(200, { token });
 
@@ -129,13 +129,15 @@ module.exports.testAutoRefreshBehavior = function ({ isBrowser } = {}) {
   });
 };
 
-module.exports.testGetConnectDataBehavior = function ({ isBrowser } = {}) {
+const testGetConnectDataBehavior = function ({ isBrowser } = {}) {
   describe('.getConnectData()', () => {
     beforeEach(() => {
-      this.apiMock.onGet('/providers').reply(200, [
-        { name: 'someprovider' },
-        { name: 'alternateprovider', alternate_names: ['alternate1', 'alternate2'] },
-      ]);
+      this.apiMock
+        .onGet('/providers')
+        .reply(200, [
+          { name: 'someprovider' },
+          { name: 'alternateprovider', alternate_names: ['alternate1', 'alternate2'] },
+        ]);
     });
 
     afterEach(() => {
@@ -212,7 +214,9 @@ module.exports.testGetConnectDataBehavior = function ({ isBrowser } = {}) {
     });
 
     test('should use `state` if passed in', async () => {
-      const { url } = await this.user.getConnectData({ state: 'eyJzb21lIjoiZGF0YSIsIm90aGVyIjoxfQ==' });
+      const { url } = await this.user.getConnectData({
+        state: 'eyJzb21lIjoiZGF0YSIsIm90aGVyIjoxfQ==',
+      });
       expect(url).toContain('state=eyJzb21lIjoiZGF0YSIsIm90aGVyIjoxfQ%3D%3D');
 
       // handle empty
@@ -232,8 +236,8 @@ module.exports.testGetConnectDataBehavior = function ({ isBrowser } = {}) {
     test('should refresh token if the existing one has less than 10 minutes left', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const existingToken = generateToken(599);
-      const newToken = generateToken();
+      const existingToken = h.generateToken(599);
+      const newToken = h.generateToken();
       mockObject.reset();
       mockObject
         .onPost()
@@ -250,7 +254,7 @@ module.exports.testGetConnectDataBehavior = function ({ isBrowser } = {}) {
     test('should not refresh token if the existing one has more than 10 minutes left', async () => {
       const mockObject = isBrowser ? this.authMock : this.apiMock;
 
-      const existingToken = generateToken(601);
+      const existingToken = h.generateToken(601);
       mockObject.reset();
       mockObject.onPost().replyOnce(200, { token: existingToken });
 
@@ -260,4 +264,14 @@ module.exports.testGetConnectDataBehavior = function ({ isBrowser } = {}) {
       expect(mockObject.history.post).toHaveLength(1);
     });
   });
+};
+
+export default {
+  setupResource,
+  shouldValidateResourceId,
+  shouldHandleResourceEndpointError,
+  shouldHandleTokenError,
+  testGetTokenBehavior,
+  testAutoRefreshBehavior,
+  testGetConnectDataBehavior,
 };
