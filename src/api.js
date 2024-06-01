@@ -1,15 +1,16 @@
 /* global window */
-const { create } = require('apisauce');
-const jwt = require('jsonwebtoken');
-const { API_URL, CONNECT_URL } = require('./constants');
-const createResources = require('./resources');
-const {
+
+import { create } from 'apisauce';
+import {
   isBrowser,
   isNodeOrSimilar,
   isReactNative,
   appendVezgoIframe,
   appendVezgoForm,
-} = require('./utils');
+} from './utils';
+import { API_URL, CONNECT_URL } from './constants';
+import createResources from './resources';
+import { jwtDecode } from 'jwt-decode';
 
 const CALLBACK_CONNECTION = '_onConnection';
 const CALLBACK_ERROR = '_onError';
@@ -21,10 +22,7 @@ class API {
     this.config.baseURL = this.config.baseURL || API_URL;
     this.config.connectURL = this.config.connectURL || CONNECT_URL;
 
-    const {
-      clientId,
-      secret,
-    } = this.config;
+    const { clientId, secret } = this.config;
 
     this.isBrowser = isBrowser();
     this.isNodeOrSimilar = isNodeOrSimilar();
@@ -119,25 +117,17 @@ class API {
       throw response.originalError;
     }
 
-    const { token } = (response.data || response);
-    const payload = jwt.decode(token);
+    const { token } = response.data || response;
+    const payload = jwtDecode(token);
     this._token = { token, payload };
 
     return this._token.token;
   }
 
   _fetchTokenNode() {
-    const {
-      clientId,
-      secret,
-      loginName,
-    } = this.config;
+    const { clientId, secret, loginName } = this.config;
 
-    return this.api.post(
-      '/auth/token',
-      { clientId, secret },
-      { headers: { loginName } },
-    );
+    return this.api.post('/auth/token', { clientId, secret }, { headers: { loginName } });
   }
 
   _fetchTokenClient() {
@@ -195,7 +185,7 @@ class API {
         try {
           this.cachedProviders = await this.providers.getList();
         } catch (error) {
-          // eslint-disable-next-line no-console
+
           console.error(error);
           throw new Error('Failed to fetch providers list.');
         }
@@ -225,20 +215,27 @@ class API {
       sync_nfts: syncNfts === false ? false : undefined, // only pass if it is false
       demo: this.config.demo ? true : undefined,
       // 'provider' param in priority, skip 'provider_categories' param if 'provider' is set
-      provider_categories: !provider && Array.isArray(providerCategories) && providerCategories.length ? providerCategories.join(',') : undefined,
+      provider_categories:
+        !provider && Array.isArray(providerCategories) && providerCategories.length
+          ? providerCategories.join(',')
+          : undefined,
       // 'provider' param in priority, skip 'providers' param if 'provider' is set
-      providers: !provider && Array.isArray(providers) && providers.length ? providers.join(',') : undefined,
+      providers:
+        !provider && Array.isArray(providers) && providers.length ? providers.join(',') : undefined,
       theme: ['light', 'dark'].includes(theme) ? theme : 'light',
-      providers_per_line: (providersPerLine && ['1', '2'].includes(providersPerLine.toString())) ? providersPerLine.toString() : '2',
+      providers_per_line:
+        providersPerLine && ['1', '2'].includes(providersPerLine.toString())
+          ? providersPerLine.toString()
+          : '2',
       features,
       multi_wallet: multiWallet,
       hide_wallet_connect_wallets: hideWalletConnectWallets,
     };
 
     // Cleanup blank params
-    Object.keys(query).forEach((key) => (
-      [undefined, null, ''].includes(query[key]) && delete query[key]
-    ));
+    Object.keys(query).forEach(
+      (key) => [undefined, null, ''].includes(query[key]) && delete query[key]
+    );
     const queryString = new URLSearchParams(query).toString();
 
     let url = slug ? `${connectURL}/connect/${slug}` : `${connectURL}/connect`;
@@ -357,7 +354,7 @@ class API {
     // Skip if not a Vezgo message
     if (!result.vezgo) return;
 
-    if (origin !== this.config.connectURL && !(/\.vezgo\.com$/).test(new URL(origin).hostname)) {
+    if (origin !== this.config.connectURL && !/\.vezgo\.com$/.test(new URL(origin).hostname)) {
       throw new Error(`Calling Vezgo from unauthorized origin ${origin}`);
     }
 
@@ -413,7 +410,7 @@ class API {
     }, 1000);
   }
 
-  // eslint-disable-next-line camelcase
+
   _closeWidgetWithError(error_type, message) {
     this._closeWidget();
     this._triggerCallback(CALLBACK_ERROR, { error_type, message });
@@ -464,4 +461,4 @@ class API {
   }
 }
 
-module.exports = API;
+export default API;
