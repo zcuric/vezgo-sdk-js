@@ -1,7 +1,19 @@
-const Vezgo = require('../src');
-const Team = require('../src/resources/teams');
+import Vezgo from '../src';
+import Teams from '../src/resources/teams';
 
-jest.mock('../src/resources/teams');
+// mock Team class
+vi.mock('../src/resources/teams', () => {
+  // Define a mock class to track instances
+  class MockTeam {
+    constructor() {
+      MockTeam.instances.push(this);
+      this.info = vi.fn();
+    }
+  }
+  MockTeam.instances = [];
+
+  return { default: MockTeam };
+});
 
 describe('Vezgo instance', () => {
   describe('.login()', () => {
@@ -18,12 +30,14 @@ describe('Vezgo instance', () => {
 
     test('should NOT require loginName in Browser & ReactNative', () => {
       mockBrowser();
-      expect(() => Vezgo.init({ clientId: 'test', secret: 'test' }).login())
-        .not.toThrow(/loginName/);
+      expect(() => Vezgo.init({ clientId: 'test', secret: 'test' }).login()).not.toThrow(
+        /loginName/
+      );
 
       mockReactNative();
-      expect(() => Vezgo.init({ clientId: 'test', secret: 'test' }).login())
-        .not.toThrow(/loginName/);
+      expect(() => Vezgo.init({ clientId: 'test', secret: 'test' }).login()).not.toThrow(
+        /loginName/
+      );
     });
   });
 
@@ -31,9 +45,7 @@ describe('Vezgo instance', () => {
     test('should call teams.info()', () => {
       const vezgo = Vezgo.init({ clientId: 'test', secret: 'test' });
       vezgo.getTeam();
-      const teams = Team.mock.instances[0];
-      expect(teams).toBeDefined();
-      expect(teams.info).toHaveBeenCalled();
+      expect(vezgo.teams.info).toHaveBeenCalled();
     });
   });
 });

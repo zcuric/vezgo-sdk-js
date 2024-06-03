@@ -1,5 +1,5 @@
-const c = require('../testutils/common');
-const h = require('../testutils/helpers');
+import c from '../testutils/common';
+import h from '../testutils/helpers';
 
 describe('Vezgo History resource', () => {
   c.setupResource.bind(this)({ isUser: true });
@@ -17,8 +17,7 @@ describe('Vezgo History resource', () => {
     test('should validate accountId', async () => {
       await expect(() => this.user.history.getList()).rejects.toThrow();
       await expect(() => this.user.history.getList({})).rejects.toThrow('account id');
-      await expect(() => this.user.history.getList({ accountId: 1 })).rejects
-        .toThrow('account id');
+      await expect(() => this.user.history.getList({ accountId: 1 })).rejects.toThrow('account id');
       expect(h.countRequests(this.userApiMock)).toBe(0);
     });
 
@@ -39,7 +38,7 @@ describe('Vezgo History resource', () => {
         anything: 'else',
       });
       expect(this.userApiMock.history.get[0].url).toBe(
-        '/accounts/test/history?from=2021-01-01&to=2021-10-01&wallet=aa%3Abb%3Acc&anything=else',
+        '/accounts/test/history?from=2021-01-01&to=2021-10-01&wallet=aa%3Abb%3Acc&anything=else'
       );
     });
 

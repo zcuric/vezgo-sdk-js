@@ -1,8 +1,12 @@
 /* global window,navigator,document */
 
-const isBrowser = () => typeof window !== 'undefined' && Object.prototype.toString.call(window) === '[object Window]' && !window.Deno;
+const isBrowser = () =>
+  typeof window !== 'undefined' &&
+  Object.prototype.toString.call(window) === '[object Window]' &&
+  !window.Deno;
 
-const isNode = () => (typeof global !== 'undefined' && Object.prototype.toString.call(global) === '[object global]');
+const isNode = () =>
+  typeof global !== 'undefined' && Object.prototype.toString.call(global) === '[object global]';
 const isDeno = () => typeof Deno !== 'undefined';
 
 const isNodeOrSimilar = () => isNode() || isDeno();
@@ -16,12 +20,15 @@ function appendVezgoIframe() {
   iframe.name = name;
   iframe.frameBorder = 0;
 
-  iframe.setAttribute('style', [
-    'width:100%; height:100%;',
-    'position:fixed;',
-    'top:0; left:0; right:0; bottom:0;',
-    'z-index:2147483647;', // max possible z-index
-  ].join(' '));
+  iframe.setAttribute(
+    'style',
+    [
+      'width:100%; height:100%;',
+      'position:fixed;',
+      'top:0; left:0; right:0; bottom:0;',
+      'z-index:2147483647;', // max possible z-index
+    ].join(' ')
+  );
 
   document.body.appendChild(iframe);
 
@@ -57,7 +64,7 @@ const getQueryString = (params = {}) => {
   return searchParams.toString();
 };
 
-module.exports = {
+export {
   isBrowser,
   isNodeOrSimilar,
   isReactNative,

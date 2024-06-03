@@ -1,13 +1,13 @@
-const MockAdapter = require('axios-mock-adapter');
-const Vezgo = require('../src');
-const c = require('./testutils/common');
-const { generateToken } = require('./testutils/helpers');
+import MockAdapter from 'axios-mock-adapter';
+import Vezgo from '../src';
+import c from './testutils/common';
+import h from './testutils/helpers';
 
 describe('Vezgo User instance (Browser)', () => {
   beforeEach(() => {
     mockBrowser();
     this.user = Vezgo.init({ clientId: 'test' }).login();
-    this.token = generateToken();
+    this.token = h.generateToken();
     this.authMock = new MockAdapter(this.user.authApi.axiosInstance);
     this.authMock.onPost('/vezgo/auth').reply(200, { token: this.token });
     this.apiMock = new MockAdapter(this.user.api.axiosInstance);
@@ -70,7 +70,7 @@ describe('Vezgo User instance (Browser)', () => {
     });
 
     test('should get token via authorizer function if defined', async () => {
-      const authorizer = jest.fn().mockImplementation((callback) => {
+      const authorizer = vi.fn().mockImplementation((callback) => {
         callback(null, { token: this.token });
       });
       this.user = Vezgo.init({
@@ -87,7 +87,7 @@ describe('Vezgo User instance (Browser)', () => {
     });
 
     test('should handle error from authorizer function', async () => {
-      const authorizer = jest.fn().mockImplementation((callback) => {
+      const authorizer = vi.fn().mockImplementation((callback) => {
         callback(new Error('test error'));
       });
       this.user = Vezgo.init({
@@ -100,7 +100,7 @@ describe('Vezgo User instance (Browser)', () => {
     });
 
     test('should handle invalid result from authorizer function', async () => {
-      const authorizer = jest.fn().mockImplementation((callback) => {
+      const authorizer = vi.fn().mockImplementation((callback) => {
         callback(null, { wrong: 'result' });
       });
       this.user = Vezgo.init({

@@ -1,13 +1,13 @@
-const MockAdapter = require('axios-mock-adapter');
-const Vezgo = require('../src');
-const c = require('./testutils/common');
-const { generateToken } = require('./testutils/helpers');
+import MockAdapter from 'axios-mock-adapter';
+import Vezgo from '../src';
+import c from './testutils/common';
+import h from './testutils/helpers';
 
 describe('Vezgo User instance (NodeJS)', () => {
   beforeEach(() => {
     mockNode();
     this.user = Vezgo.init({ clientId: 'test', secret: 'test' }).login('test');
-    this.token = generateToken();
+    this.token = h.generateToken();
     this.apiMock = new MockAdapter(this.user.api.axiosInstance);
     this.apiMock.onPost('/auth/token').reply(200, { token: this.token });
   });
